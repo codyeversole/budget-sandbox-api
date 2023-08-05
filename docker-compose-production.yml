@@ -1,0 +1,34 @@
+services:
+  budget_sandbox_db:
+    image: postgres:15.3
+    networks:  
+      - nginx_network
+    healthcheck:
+      test: "exit 0"
+    restart: always
+    ports:
+      - 4432:5432
+    environment:
+      - POSTGRES_USER=${PostgressUsername}
+      - POSTGRES_PASSWORD=${PostgressPassword}
+      - POSTGRES_DB=budget_sandbox_db
+    volumes:
+      - budget-sandbox-data:/var/lib/postgresql/data    
+  budget_sandbox_api:
+    build:
+      context: .
+    networks:  
+      - nginx_network
+    expose: 
+      - "5000"
+    depends_on:
+      budget_sandbox_db:
+        condition: service_healthy
+    environment:
+      - Keycloak__ClientSecret=${Keycloak__ClientSecret}
+      - PostgresDatabaseConnection=${PostgresDatabaseConnection}
+volumes:
+  budget-sandbox-data:
+networks:
+  nginx_network:
+    external: true
